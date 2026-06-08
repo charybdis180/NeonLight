@@ -1,0 +1,111 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Generated for Neon Lights",
+	"render_type": "minecraft:translucent",
+	"textures": {
+		"particle": "neonlight:block/glyph_base"
+	},
+	"elements": [
+		{
+			"from": [7, 11, 7.5],
+			"to": [8, 12, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [7, 12, 8]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"east": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"south": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"down": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0}
+			}
+		},
+		{
+			"from": [7, 12, 7.5],
+			"to": [8, 13, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [7, 13, 8]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"south": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"west": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"up": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0}
+			}
+		},
+		{
+			"from": [6, 5, 7.5],
+			"to": [7, 11, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [6, 11, 8]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"east": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"south": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"west": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0}
+			}
+		},
+		{
+			"from": [7, 3, 7.5],
+			"to": [8, 4, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [7, 4, 8]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"south": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"west": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"down": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0}
+			}
+		},
+		{
+			"from": [8, 3, 7.5],
+			"to": [9, 4, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 4, 8]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"east": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"south": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"up": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"down": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0}
+			}
+		},
+		{
+			"from": [6, 4, 7.5],
+			"to": [7, 5, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [6, 5, 8]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"south": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"west": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"down": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0}
+			}
+		},
+		{
+			"from": [7, 4, 7.5],
+			"to": [8, 5, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [7, 5, 8]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"east": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"south": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"up": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0}
+			}
+		},
+		{
+			"from": [6, 11, 7.5],
+			"to": [7, 12, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [6, 12, 8]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"south": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"west": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"up": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0}
+			}
+		},
+		{
+			"from": [8, 12, 7.5],
+			"to": [9, 13, 8.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 13, 8]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"east": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"south": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"up": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0},
+				"down": {"uv": [2, 0, 0, 2], "texture": "#particle", "tintindex": 0}
+			}
+		}
+	]
+}

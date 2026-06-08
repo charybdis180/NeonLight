@@ -1,0 +1,32 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "neonlight:block/frame_corner_up_right",
+		"particle": "neonlight:block/frame_corner_up_right"
+	},
+	"elements": [
+		{
+			"from": [13.99, 13.99, 6.99],
+			"to": [16.01, 16.01, 9.01],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
+			"faces": {
+				"north": {"uv": [0, 0, 2, 2], "texture": "#0", "tintindex": 0},
+				"east": {"uv": [0, 2, 2, 4], "texture": "#0", "tintindex": 0},
+				"south": {"uv": [2, 0, 4, 2], "texture": "#0", "tintindex": 0},
+				"west": {"uv": [2, 2, 4, 4], "texture": "#0", "tintindex": 0},
+				"up": {"uv": [2, 6, 0, 4], "texture": "#0", "tintindex": 0},
+				"down": {"uv": [6, 0, 4, 2], "texture": "#0", "tintindex": 0}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "group",
+			"origin": [8, 8, 8],
+			"scope": 0,
+			"color": 0,
+			"children": [0]
+		}
+	]
+}

@@ -1,0 +1,25 @@
+{
+  "itemGroup.neonlight": "Neon Lights",
+
+  "screen.neonlight.neon_sign": "Set Sign Letter",
+  "screen.neonlight.neon_sign.prompt": "Press a letter, number, symbol, or arrow key (Backspace to clear)",
+
+  "block.neonlight.neon_sign": "Neon Sign",
+
+  "block.neonlight.white_neon_sign": "White Neon Sign",
+  "block.neonlight.orange_neon_sign": "Orange Neon Sign",
+  "block.neonlight.magenta_neon_sign": "Magenta Neon Sign",
+  "block.neonlight.light_blue_neon_sign": "Light Blue Neon Sign",
+  "block.neonlight.yellow_neon_sign": "Yellow Neon Sign",
+  "block.neonlight.lime_neon_sign": "Lime Neon Sign",
+  "block.neonlight.pink_neon_sign": "Pink Neon Sign",
+  "block.neonlight.gray_neon_sign": "Gray Neon Sign",
+  "block.neonlight.light_gray_neon_sign": "Light Gray Neon Sign",
+  "block.neonlight.cyan_neon_sign": "Cyan Neon Sign",
+  "block.neonlight.purple_neon_sign": "Purple Neon Sign",
+  "block.neonlight.blue_neon_sign": "Blue Neon Sign",
+  "block.neonlight.brown_neon_sign": "Brown Neon Sign",
+  "block.neonlight.green_neon_sign": "Green Neon Sign",
+  "block.neonlight.red_neon_sign": "Red Neon Sign",
+  "block.neonlight.black_neon_sign": "Black Neon Sign"
+}

@@ -1,0 +1,8 @@
+{
+	"render_type": "minecraft:translucent",
+	"textures": {
+		"0": "neonlight:block/glyph_base",
+		"particle": "neonlight:block/glyph_base"
+	},
+	"elements": []
+}

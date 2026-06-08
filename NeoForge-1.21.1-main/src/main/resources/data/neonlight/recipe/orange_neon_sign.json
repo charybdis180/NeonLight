@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "tag": "neonlight:neon_signs" },
+    { "tag": "neonlight:neon_signs" },
+    { "tag": "neonlight:neon_signs" },
+    { "tag": "neonlight:neon_signs" },
+    { "item": "minecraft:orange_dye" }
+  ],
+  "result": { "count": 4, "id": "neonlight:orange_neon_sign" }
+}
