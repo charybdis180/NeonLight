@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ROY",
+    "GSL",
+    "TBP"
+  ],
+  "key": {
+    "R": { "item": "minecraft:red_dye" },
+    "O": { "item": "minecraft:orange_dye" },
+    "Y": { "item": "minecraft:yellow_dye" },
+    "G": { "item": "minecraft:green_dye" },
+    "L": { "item": "minecraft:lime_dye" },
+    "T": { "item": "minecraft:light_blue_dye" },
+    "B": { "item": "minecraft:blue_dye" },
+    "P": { "item": "minecraft:purple_dye" },
+    "S": { "tag": "neonlight:neon_signs" }
+  },
+  "result": { "count": 4, "id": "neonlight:rainbow_neon_sign" }
+}

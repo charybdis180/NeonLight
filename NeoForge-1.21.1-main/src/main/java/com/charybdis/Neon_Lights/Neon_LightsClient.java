@@ -16,6 +16,7 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 @Mod(value = Neon_Lights.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = Neon_Lights.MODID, value = Dist.CLIENT)
 public class Neon_LightsClient {
+
     @SubscribeEvent
     static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(Neon_Lights.NEON_SIGN_BE.get(), NeonSignRenderer::new);
@@ -24,6 +25,7 @@ public class Neon_LightsClient {
     @SubscribeEvent
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
         NeonSignGlyphs.additionalModelPaths().forEach(path -> register(event, path));
+        NeonSignRenderer.FRAME_MODELS.forEach(path -> register(event, path));
     }
 
     private static void register(ModelEvent.RegisterAdditional event, String path) {
@@ -51,5 +53,7 @@ public class Neon_LightsClient {
             event.register((stack, tintIndex) -> tintIndex == 0 ? rgb : -1,
                     Neon_Lights.COLORED_SIGN_ITEMS.get(color).get());
         }
+        event.register((stack, tintIndex) -> tintIndex == 0 ? NeonSignRenderer.rainbowColorNow() : -1,
+                Neon_Lights.RAINBOW_NEON_SIGN_ITEM.get());
     }
 }

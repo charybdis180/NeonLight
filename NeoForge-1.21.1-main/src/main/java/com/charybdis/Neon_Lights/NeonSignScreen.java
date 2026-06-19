@@ -63,7 +63,7 @@ public class NeonSignScreen extends Screen {
         int cx = this.width / 2;
         int cy = this.height / 2;
         graphics.drawCenteredString(this.font, this.title, cx, cy - 20, 0xFFFFFFFF);
-        graphics.drawCenteredString(this.font, Component.translatable("screen.neonlight.neon_sign.prompt"), cx, cy, 0xA0A0A0);
+        graphics.drawCenteredString(this.font, Component.translatable("screen.neonlight.neon_sign.prompt"), cx, cy, 0xFFA0A0A0);
     }
 
     @Override

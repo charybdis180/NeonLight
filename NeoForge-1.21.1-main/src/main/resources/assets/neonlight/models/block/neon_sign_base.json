@@ -1,0 +1,6 @@
+{
+  "__comment": "The neon sign has no static geometry - the frame and glyph are drawn by NeonSignRenderer. This model exists only to supply the break-particle texture.",
+  "textures": {
+    "particle": "minecraft:block/glass"
+  }
+}

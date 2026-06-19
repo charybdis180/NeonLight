@@ -11,76 +11,59 @@ import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityBlock {
 
-    public enum SideConnection implements StringRepresentable {
-        NONE("none"),
-        SIGN("sign"),
-        SUPPORT("support");
+    public enum SideConnection {
+        NONE,
+        SIGN,
+        SUPPORT
+    }
 
-        private final String name;
-
-        SideConnection(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String getSerializedName() {
-            return name;
-        }
+    public record FrameLayout(
+            SideConnection up, SideConnection down, SideConnection left, SideConnection right,
+            boolean innerUpLeft, boolean innerUpRight, boolean innerDownLeft, boolean innerDownRight) {
     }
 
     public static final MapCodec<NeonSignBlock> CODEC = simpleCodec(NeonSignBlock::new);
 
-    public static final EnumProperty<SideConnection> CONNECT_UP = EnumProperty.create("connect_up", SideConnection.class);
-    public static final EnumProperty<SideConnection> CONNECT_DOWN = EnumProperty.create("connect_down", SideConnection.class);
-    public static final EnumProperty<SideConnection> CONNECT_LEFT = EnumProperty.create("connect_left", SideConnection.class);
-    public static final EnumProperty<SideConnection> CONNECT_RIGHT = EnumProperty.create("connect_right", SideConnection.class);
-
-    public static final BooleanProperty INNER_CORNER_UP_LEFT = BooleanProperty.create("inner_corner_up_left");
-    public static final BooleanProperty INNER_CORNER_UP_RIGHT = BooleanProperty.create("inner_corner_up_right");
-    public static final BooleanProperty INNER_CORNER_DOWN_LEFT = BooleanProperty.create("inner_corner_down_left");
-    public static final BooleanProperty INNER_CORNER_DOWN_RIGHT = BooleanProperty.create("inner_corner_down_right");
+    public static final BooleanProperty MOUNTED = BooleanProperty.create("mounted");
 
     public static final BooleanProperty LIT = BooleanProperty.create("lit");
 
     public static final int LIT_LIGHT_LEVEL = 10;
 
+    public static final double MOUNTED_DEPTH = 6.5D / 16.0D;
+
     private static final VoxelShape SHAPE_NORTH_SOUTH = Block.box(0, 0, 6, 16, 16, 10);
     private static final VoxelShape SHAPE_EAST_WEST = Block.box(6, 0, 0, 10, 16, 16);
+
+    private static final VoxelShape MOUNTED_SHAPE_NORTH = Block.box(0, 0, 12, 16, 16, 16);
+    private static final VoxelShape MOUNTED_SHAPE_SOUTH = Block.box(0, 0, 0, 16, 16, 4);
+    private static final VoxelShape MOUNTED_SHAPE_EAST = Block.box(0, 0, 0, 4, 16, 16);
+    private static final VoxelShape MOUNTED_SHAPE_WEST = Block.box(12, 0, 0, 16, 16, 16);
 
     public NeonSignBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(CONNECT_UP, SideConnection.NONE)
-                .setValue(CONNECT_DOWN, SideConnection.NONE)
-                .setValue(CONNECT_LEFT, SideConnection.NONE)
-                .setValue(CONNECT_RIGHT, SideConnection.NONE)
-                .setValue(INNER_CORNER_UP_LEFT, false)
-                .setValue(INNER_CORNER_UP_RIGHT, false)
-                .setValue(INNER_CORNER_DOWN_LEFT, false)
-                .setValue(INNER_CORNER_DOWN_RIGHT, false)
+                .setValue(MOUNTED, false)
                 .setValue(LIT, false));
     }
 
@@ -91,10 +74,12 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING,
-                CONNECT_UP, CONNECT_DOWN, CONNECT_LEFT, CONNECT_RIGHT,
-                INNER_CORNER_UP_LEFT, INNER_CORNER_UP_RIGHT, INNER_CORNER_DOWN_LEFT, INNER_CORNER_DOWN_RIGHT,
-                LIT);
+        builder.add(FACING, MOUNTED, LIT);
+    }
+
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
     @Override
@@ -104,20 +89,20 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = this.defaultBlockState()
-                .setValue(FACING, context.getHorizontalDirection().getOpposite());
-        return withConnections(state, context.getLevel(), context.getClickedPos());
+        Direction clickedFace = context.getClickedFace();
+        Direction lookOpposite = context.getHorizontalDirection().getOpposite();
+
+        boolean headOn = clickedFace.getAxis().isHorizontal() && clickedFace == lookOpposite;
+        boolean wallMount = headOn && !context.isSecondaryUseActive();
+
+        return this.defaultBlockState()
+                .setValue(FACING, lookOpposite)
+                .setValue(MOUNTED, wallMount);
     }
 
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         if (!level.isClientSide) {
-            BlockState updated = withConnections(state, level, pos);
-            if (updated != state) {
-                level.setBlock(pos, updated, Block.UPDATE_CLIENTS);
-                state = updated;
-            }
-            refreshSignsAffectedByDiagonalChange(level, pos);
             refreshClusterLight(level, pos);
         }
         super.onPlace(state, level, pos, oldState, isMoving);
@@ -133,23 +118,27 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
-                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         Direction facing = state.getValue(FACING);
-        if (direction != Direction.UP
-                && direction != Direction.DOWN
-                && direction != facing.getClockWise()
-                && direction != facing.getCounterClockWise()) {
-            return state;
+        if (state.getValue(MOUNTED)) {
+            return switch (facing) {
+                case SOUTH -> MOUNTED_SHAPE_SOUTH;
+                case EAST -> MOUNTED_SHAPE_EAST;
+                case WEST -> MOUNTED_SHAPE_WEST;
+                default -> MOUNTED_SHAPE_NORTH;
+            };
         }
-
-        BlockState updated = withConnections(state, level, pos);
-        refreshSignsAffectedByDiagonalChange(level, neighborPos);
-        return updated;
+        boolean alongZ = facing == Direction.NORTH || facing == Direction.SOUTH;
+        return alongZ ? SHAPE_NORTH_SOUTH : SHAPE_EAST_WEST;
     }
 
-    private BlockState withConnections(BlockState state, LevelReader level, BlockPos pos) {
+    public static FrameLayout computeFrame(BlockGetter level, BlockPos pos, BlockState state) {
+        if (!(state.getBlock() instanceof NeonSignBlock block)) {
+            return new FrameLayout(SideConnection.NONE, SideConnection.NONE, SideConnection.NONE,
+                    SideConnection.NONE, false, false, false, false);
+        }
         Direction facing = state.getValue(FACING);
+        boolean mounted = state.getValue(MOUNTED);
         Direction right = facing.getClockWise();
         Direction left = facing.getCounterClockWise();
         BlockPos up = pos.above();
@@ -157,67 +146,38 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
         BlockPos rightPos = pos.relative(right);
         BlockPos leftPos = pos.relative(left);
 
-        SideConnection connectUp = classify(level.getBlockState(up), level, up, facing);
-        SideConnection connectDown = classify(level.getBlockState(down), level, down, facing);
-        SideConnection connectRight = classify(level.getBlockState(rightPos), level, rightPos, facing);
-        SideConnection connectLeft = classify(level.getBlockState(leftPos), level, leftPos, facing);
+        SideConnection connectUp = classify(level.getBlockState(up), level, up, facing, mounted, block);
+        SideConnection connectDown = classify(level.getBlockState(down), level, down, facing, mounted, block);
+        SideConnection connectRight = classify(level.getBlockState(rightPos), level, rightPos, facing, mounted, block);
+        SideConnection connectLeft = classify(level.getBlockState(leftPos), level, leftPos, facing, mounted, block);
 
         boolean upJoined = connectUp == SideConnection.SIGN;
         boolean downJoined = connectDown == SideConnection.SIGN;
         boolean leftJoined = connectLeft == SideConnection.SIGN;
         boolean rightJoined = connectRight == SideConnection.SIGN;
 
-        return state
-                .setValue(CONNECT_UP, connectUp)
-                .setValue(CONNECT_DOWN, connectDown)
-                .setValue(CONNECT_RIGHT, connectRight)
-                .setValue(CONNECT_LEFT, connectLeft)
-                .setValue(INNER_CORNER_UP_RIGHT, upJoined && rightJoined && !isSameSign(level, up.relative(right), facing))
-                .setValue(INNER_CORNER_UP_LEFT, upJoined && leftJoined && !isSameSign(level, up.relative(left), facing))
-                .setValue(INNER_CORNER_DOWN_RIGHT, downJoined && rightJoined && !isSameSign(level, down.relative(right), facing))
-                .setValue(INNER_CORNER_DOWN_LEFT, downJoined && leftJoined && !isSameSign(level, down.relative(left), facing));
+        return new FrameLayout(connectUp, connectDown, connectLeft, connectRight,
+                upJoined && leftJoined && !isSameSign(level, up.relative(left), facing, mounted, block),
+                upJoined && rightJoined && !isSameSign(level, up.relative(right), facing, mounted, block),
+                downJoined && leftJoined && !isSameSign(level, down.relative(left), facing, mounted, block),
+                downJoined && rightJoined && !isSameSign(level, down.relative(right), facing, mounted, block));
     }
 
-    private static void refreshSignsAffectedByDiagonalChange(LevelAccessor level, BlockPos changedPos) {
-        for (Direction facing : Direction.Plane.HORIZONTAL) {
-            Direction right = facing.getClockWise();
-            Direction left = facing.getCounterClockWise();
-            BlockPos[] candidates = {
-                    changedPos.below().relative(left),
-                    changedPos.below().relative(right),
-                    changedPos.above().relative(left),
-                    changedPos.above().relative(right),
-            };
-            for (BlockPos candidate : candidates) {
-                BlockState candidateState = level.getBlockState(candidate);
-                if (candidateState.getBlock() instanceof NeonSignBlock signBlock
-                        && candidateState.getValue(FACING) == facing) {
-                    BlockState refreshed = signBlock.withConnections(candidateState, level, candidate);
-                    if (refreshed != candidateState) {
-                        level.setBlock(candidate, refreshed, Block.UPDATE_CLIENTS);
-                    }
-                }
-            }
+    private static SideConnection classify(BlockState neighbor, BlockGetter level, BlockPos neighborPos,
+                                           Direction facing, boolean mounted, NeonSignBlock block) {
+        if (neighbor.is(block)) {
+            return (neighbor.getValue(FACING) == facing && neighbor.getValue(MOUNTED) == mounted)
+                    ? SideConnection.SIGN : SideConnection.NONE;
         }
-    }
-
-    private SideConnection classify(BlockState neighbor, BlockGetter level, BlockPos neighborPos, Direction facing) {
-        if (neighbor.is(this)) {
-            return neighbor.getValue(FACING) == facing ? SideConnection.SIGN : SideConnection.NONE;
+        if (mounted) {
+            return SideConnection.NONE;
         }
         return neighbor.isCollisionShapeFullBlock(level, neighborPos) ? SideConnection.SUPPORT : SideConnection.NONE;
     }
 
-    private boolean isSameSign(LevelReader level, BlockPos pos, Direction facing) {
+    private static boolean isSameSign(BlockGetter level, BlockPos pos, Direction facing, boolean mounted, NeonSignBlock block) {
         BlockState neighbor = level.getBlockState(pos);
-        return neighbor.is(this) && neighbor.getValue(FACING) == facing;
-    }
-
-    @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        Direction facing = state.getValue(FACING);
-        boolean alongZ = facing == Direction.NORTH || facing == Direction.SOUTH;
-        return alongZ ? SHAPE_NORTH_SOUTH : SHAPE_EAST_WEST;
+        return neighbor.is(block) && neighbor.getValue(FACING) == facing && neighbor.getValue(MOUNTED) == mounted;
     }
 
     public static void refreshClusterLight(Level level, BlockPos origin) {
@@ -229,7 +189,8 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
             return;
         }
         Direction facing = originState.getValue(FACING);
-        List<BlockPos> cluster = collectCluster(level, origin, block, facing);
+        boolean mounted = originState.getValue(MOUNTED);
+        List<BlockPos> cluster = collectCluster(level, origin, block, facing, mounted);
 
         boolean clusterPowered = false;
         for (BlockPos pos : cluster) {
@@ -253,7 +214,7 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
         }
     }
 
-    private static List<BlockPos> collectCluster(Level level, BlockPos origin, NeonSignBlock block, Direction facing) {
+    private static List<BlockPos> collectCluster(Level level, BlockPos origin, NeonSignBlock block, Direction facing, boolean mounted) {
         Direction right = facing.getClockWise();
         Direction left = facing.getCounterClockWise();
 
@@ -277,7 +238,9 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
                     continue;
                 }
                 BlockState neighborState = level.getBlockState(neighbor);
-                if (neighborState.getBlock() == block && neighborState.getValue(FACING) == facing) {
+                if (neighborState.getBlock() == block
+                        && neighborState.getValue(FACING) == facing
+                        && neighborState.getValue(MOUNTED) == mounted) {
                     visited.add(neighbor);
                     queue.add(neighbor);
                 }
