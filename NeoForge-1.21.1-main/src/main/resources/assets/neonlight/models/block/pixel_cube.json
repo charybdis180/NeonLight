@@ -1,0 +1,21 @@
+{
+  "parent": "neonlight:block/letter_glyph",
+  "textures": {
+    "0": "neonlight:block/glyph_base",
+    "particle": "neonlight:block/glyph_base"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 7.5],
+      "to": [1, 1, 8.5],
+      "faces": {
+        "north": {"uv": [0, 0, 2, 2], "texture": "#0", "tintindex": 0},
+        "south": {"uv": [0, 0, 2, 2], "texture": "#0", "tintindex": 0},
+        "east": {"uv": [0, 0, 2, 2], "texture": "#0", "tintindex": 0},
+        "west": {"uv": [0, 0, 2, 2], "texture": "#0", "tintindex": 0},
+        "up": {"uv": [0, 0, 2, 2], "texture": "#0", "tintindex": 0},
+        "down": {"uv": [0, 0, 2, 2], "texture": "#0", "tintindex": 0}
+      }
+    }
+  ]
+}

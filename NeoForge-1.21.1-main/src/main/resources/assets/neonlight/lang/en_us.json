@@ -1,8 +1,19 @@
 {
   "itemGroup.neonlight": "Neon Lights",
 
+  "item.neonlight.neon_design_tool": "Glowstone Wrench",
+
   "screen.neonlight.neon_sign": "Set Sign Letter",
   "screen.neonlight.neon_sign.prompt": "Press a letter, number, symbol, or arrow key (Backspace to clear)",
+
+  "screen.neonlight.neon_canvas": "Neon Sign Canvas",
+  "screen.neonlight.neon_canvas.eraser": "Eraser",
+  "screen.neonlight.neon_canvas.mirror": "Mirror",
+  "screen.neonlight.neon_canvas.undo": "Undo",
+  "screen.neonlight.neon_canvas.redo": "Redo",
+  "screen.neonlight.neon_canvas.name_hint": "Sign name",
+
+  "screen.neonlight.glyph_color": "Select Color",
 
   "block.neonlight.neon_sign": "Neon Sign",
 

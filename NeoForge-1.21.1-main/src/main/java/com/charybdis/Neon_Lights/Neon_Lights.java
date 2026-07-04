@@ -10,6 +10,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -65,6 +66,9 @@ public class Neon_Lights {
         }
     }
 
+    public static final DeferredItem<Item> NEON_DESIGN_TOOL = ITEMS.register("neon_design_tool",
+            () -> new Item(new Item.Properties().stacksTo(1)));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NeonSignBlockEntity>> NEON_SIGN_BE =
             BLOCK_ENTITIES.register("neon_sign", () -> {
                 Block[] all = Stream.concat(
@@ -87,6 +91,28 @@ public class Neon_Lights {
         return block == RAINBOW_NEON_SIGN.get();
     }
 
+    /** Resolves the dye color for frame/cluster matching; base neon_sign counts as white. */
+    public static DyeColor resolveSignColor(Block block) {
+        if (!(block instanceof NeonSignBlock)) {
+            return null;
+        }
+        if (isRainbow(block)) {
+            return null;
+        }
+        DyeColor color = colorOf(block);
+        return color == null ? DyeColor.WHITE : color;
+    }
+
+    public static boolean sameSignColor(Block a, Block b) {
+        if (!(a instanceof NeonSignBlock) || !(b instanceof NeonSignBlock)) {
+            return false;
+        }
+        if (isRainbow(a) || isRainbow(b)) {
+            return isRainbow(a) && isRainbow(b);
+        }
+        return resolveSignColor(a) == resolveSignColor(b);
+    }
+
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> NEON_TAB = CREATIVE_MODE_TABS.register("neon_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.neonlight"))
             .withTabsBefore(CreativeModeTabs.COMBAT)
@@ -97,6 +123,7 @@ public class Neon_Lights {
                     output.accept(COLORED_SIGN_ITEMS.get(color).get());
                 }
                 output.accept(RAINBOW_NEON_SIGN_ITEM.get());
+                output.accept(NEON_DESIGN_TOOL.get());
             }).build());
 
     public Neon_Lights(IEventBus modEventBus) {
@@ -106,5 +133,7 @@ public class Neon_Lights {
         BLOCK_ENTITIES.register(modEventBus);
 
         modEventBus.addListener(SetSignLetterPayload::register);
+        modEventBus.addListener(SetSignCanvasPayload::register);
+        modEventBus.addListener(SetGlyphColorPayload::register);
     }
 }

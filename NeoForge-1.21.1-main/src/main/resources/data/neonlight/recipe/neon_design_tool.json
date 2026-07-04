@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "minecraft:iron_ingot" },
+    { "item": "minecraft:glowstone_dust" },
+    { "tag": "c:dyes" }
+  ],
+  "result": {
+    "count": 1,
+    "id": "neonlight:neon_design_tool"
+  }
+}
