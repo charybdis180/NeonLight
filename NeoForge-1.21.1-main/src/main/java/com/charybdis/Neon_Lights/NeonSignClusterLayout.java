@@ -17,7 +17,7 @@ public final class NeonSignClusterLayout {
     public record CellCoord(int col, int row) {
     }
 
-    public record SignCell(BlockPos pos, int col, int row, FrameLayout frameLayout) {
+    public record SignCell(BlockPos pos, int col, int row, FrameLayout frameLayout, boolean frameRemoved) {
     }
 
     private final BlockPos origin;
@@ -30,6 +30,7 @@ public final class NeonSignClusterLayout {
     private final boolean[][] hasSign;
     private final Map<BlockPos, SignCell> cellsByPos;
     private final SignCell[][] grid;
+    private boolean frameRemovedOverrides; // live local toggle that overrides per-cell flags
 
     private NeonSignClusterLayout(BlockPos origin, int minCol, int minRow, int signCols, int signRows,
                                   boolean[][] hasSign, Map<BlockPos, SignCell> cellsByPos, SignCell[][] grid) {
@@ -91,7 +92,8 @@ public final class NeonSignClusterLayout {
             int row = raw.row() - minRow;
             BlockState state = level.getBlockState(pos);
             FrameLayout frame = NeonSignBlock.computeFrame(level, pos, state);
-            SignCell cell = new SignCell(pos, col, row, frame);
+            boolean frameRemoved = level.getBlockEntity(pos) instanceof NeonSignBlockEntity sign && sign.isFrameRemoved();
+            SignCell cell = new SignCell(pos, col, row, frame, frameRemoved);
             hasSign[col][row] = true;
             cellsByPos.put(pos, cell);
             grid[col][row] = cell;
@@ -121,9 +123,6 @@ public final class NeonSignClusterLayout {
                     if (color == NeonSignGrid.COLOR_EMPTY) {
                         continue;
                     }
-                    if (!NeonSignFrameMask.isEditable(cell.frameLayout(), localX, localY)) {
-                        continue;
-                    }
                     int canvasX = cell.col() * NeonSignGrid.PIXELS_W + localX;
                     int canvasY = cell.row() * NeonSignGrid.PIXELS_H + localY;
                     canvas[canvasIndex(canvasX, canvasY)] = (byte) color;
@@ -145,7 +144,22 @@ public final class NeonSignClusterLayout {
         return "";
     }
 
-    public void applyCanvasToWorld(Level level, byte[] canvas, String customName) {
+    /** True when every sign cell in the cluster has its frame removed. */
+    public boolean loadFrameRemoved(Level level) {
+        boolean any = false;
+        for (SignCell cell : cellsByPos.values()) {
+            if (level.getBlockEntity(cell.pos()) instanceof NeonSignBlockEntity sign) {
+                if (sign.isFrameRemoved()) {
+                    any = true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return any;
+    }
+
+    public void applyCanvasToWorld(Level level, byte[] canvas, String customName, boolean frameRemoved) {
         if (canvas.length != canvasPixelW * canvasPixelH) {
             return;
         }
@@ -164,7 +178,7 @@ public final class NeonSignClusterLayout {
                         int canvasX = col * NeonSignGrid.PIXELS_W + localX;
                         int canvasY = row * NeonSignGrid.PIXELS_H + localY;
                         int color = canvas[canvasIndex(canvasX, canvasY)] & 0xFF;
-                        if (color == NeonSignGrid.COLOR_EMPTY || !NeonSignFrameMask.isEditable(cell.frameLayout(), localX, localY)) {
+                        if (color == NeonSignGrid.COLOR_EMPTY) {
                             continue;
                         }
                         if (NeonSignGrid.isValidColorIndex(color)) {
@@ -179,6 +193,7 @@ public final class NeonSignClusterLayout {
             if (level.getBlockEntity(cell.pos()) instanceof NeonSignBlockEntity sign) {
                 sign.setCanvasMemberFromBatch(true);
                 sign.setCustomNameFromBatch(customName);
+                sign.setFrameRemovedFromBatch(frameRemoved);
                 sign.markUpdatedFromBatch();
             }
             BlockState state = level.getBlockState(cell.pos());
@@ -217,7 +232,19 @@ public final class NeonSignClusterLayout {
         if (cell == null) {
             return false;
         }
+        if (frameRemovedOverrides) {
+            return true;
+        }
         return NeonSignFrameMask.isEditable(cell.frameLayout(), localX(canvasX), localY(canvasY));
+    }
+
+    /** Live local override used by the editor toggle; all cells become editable. */
+    public void setFrameRemovedOverride(boolean removed) {
+        this.frameRemovedOverrides = removed;
+    }
+
+    public boolean frameRemovedOverride() {
+        return frameRemovedOverrides;
     }
 
     public BlockPos origin() {

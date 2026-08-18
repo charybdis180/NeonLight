@@ -76,7 +76,8 @@ public class NeonSignRenderer implements BlockEntityRenderer<NeonSignBlockEntity
         boolean mounted = state.getValue(NeonSignBlock.MOUNTED);
 
         NeonSignBlock.FrameLayout frame = sign.renderFrameLayout();
-        if (level != null) {
+        boolean frameRemoved = sign.isFrameRemoved();
+        if (level != null && !frameRemoved) {
             renderFrame(frame, yRotation, mounted, red, green, blue,
                     poseStack, bufferSource, state, packedLight, packedOverlay);
         }
@@ -109,7 +110,7 @@ public class NeonSignRenderer implements BlockEntityRenderer<NeonSignBlockEntity
                 if (sign.pixelMeshTick() != gameTime || sign.pixelMesh() == null) {
                     boolean[] occupancy = sign.renderOccupancy(pixels, frame);
                     NeonSignPixelLookup lookup = new NeonSignPixelLookup(level, sign.getBlockPos(), state, occupancy);
-                    int count = buildPixelMesh(pixels, frame, lookup, BAKE_SCRATCH);
+                    int count = buildPixelMesh(pixels, frame, frameRemoved, lookup, BAKE_SCRATCH);
                     sign.setPixelMesh(java.util.Arrays.copyOf(BAKE_SCRATCH, count), count, gameTime);
                 }
                 renderPixelsBaked(sign.pixelMesh(), sign.pixelMeshCount(), gameTime, partialTick,
@@ -123,7 +124,7 @@ public class NeonSignRenderer implements BlockEntityRenderer<NeonSignBlockEntity
      * per-pixel neighbor/frame checks (including cross-block world lookups) only run here, so
      * per-frame rendering just replays the cached faces.
      */
-    private static int buildPixelMesh(byte[] pixels, NeonSignBlock.FrameLayout frame,
+    private static int buildPixelMesh(byte[] pixels, NeonSignBlock.FrameLayout frame, boolean fullEditable,
                                       NeonSignPixelLookup lookup, int[] out) {
         int n = 0;
         for (int i = 0; i < NeonSignGrid.PIXEL_COUNT; i++) {
@@ -133,7 +134,7 @@ public class NeonSignRenderer implements BlockEntityRenderer<NeonSignBlockEntity
             }
             int x = NeonSignGrid.xOf(i);
             int y = NeonSignGrid.yOf(i);
-            if (!NeonSignFrameMask.isEditable(frame, x, y)) {
+            if (fullEditable ? !NeonSignFrameMask.isEditableFull(x, y) : !NeonSignFrameMask.isEditable(frame, x, y)) {
                 continue;
             }
             out[n++] = NeonSignGrid.packFace(x, y, 0, colorIndex);

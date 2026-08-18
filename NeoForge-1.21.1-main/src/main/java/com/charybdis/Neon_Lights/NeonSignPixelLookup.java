@@ -63,13 +63,14 @@ public final class NeonSignPixelLookup {
             return false;
         }
         FrameLayout neighborFrame = neighborSign.renderFrameLayout();
-        if (!NeonSignFrameMask.isEditable(neighborFrame, nx, ny)) {
+        boolean neighborFull = neighborSign.isFrameRemoved();
+        if (!neighborFull && !NeonSignFrameMask.isEditable(neighborFrame, nx, ny)) {
             return false;
         }
         return (neighborPixels[NeonSignGrid.index(nx, ny)] & 0xFF) != NeonSignGrid.COLOR_EMPTY;
     }
 
-    public static boolean[] buildOccupancy(byte[] pixels, FrameLayout frame) {
+    public static boolean[] buildOccupancy(byte[] pixels, FrameLayout frame, boolean fullEditable) {
         boolean[] occ = new boolean[NeonSignGrid.PIXEL_COUNT];
         for (int i = 0; i < NeonSignGrid.PIXEL_COUNT; i++) {
             if ((pixels[i] & 0xFF) == NeonSignGrid.COLOR_EMPTY) {
@@ -77,7 +78,7 @@ public final class NeonSignPixelLookup {
             }
             int x = NeonSignGrid.xOf(i);
             int y = NeonSignGrid.yOf(i);
-            if (NeonSignFrameMask.isEditable(frame, x, y)) {
+            if (fullEditable ? NeonSignFrameMask.isEditableFull(x, y) : NeonSignFrameMask.isEditable(frame, x, y)) {
                 occ[i] = true;
             }
         }

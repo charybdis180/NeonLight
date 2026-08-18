@@ -20,6 +20,7 @@ public class NeonSignBlockEntity extends BlockEntity {
     private byte[] pixels;
     private boolean hasAnyPixels;
     private boolean canvasMember;
+    private boolean frameRemoved;
 
     // Client render caches: rebuilt at most once per game tick to avoid per-frame
     // neighbor scans and array allocations. Frame layout only changes when a neighbor
@@ -62,6 +63,22 @@ public class NeonSignBlockEntity extends BlockEntity {
 
     void setCanvasMemberFromBatch(boolean member) {
         this.canvasMember = member;
+    }
+
+    /** True when the sign's frame band has been removed, making all 16x16 cells editable. */
+    public boolean isFrameRemoved() {
+        return frameRemoved;
+    }
+
+    void setFrameRemovedFromBatch(boolean removed) {
+        this.frameRemoved = removed;
+    }
+
+    public void setFrameRemoved(boolean removed) {
+        if (this.frameRemoved != removed) {
+            this.frameRemoved = removed;
+            markUpdated();
+        }
     }
 
     public String getCustomName() {
@@ -114,6 +131,11 @@ public class NeonSignBlockEntity extends BlockEntity {
 
     /** Frame layout for rendering, cached per game tick to avoid per-frame neighbor scans. */
     public NeonSignBlock.FrameLayout renderFrameLayout() {
+        if (frameRemoved) {
+            cachedFrame = NeonSignBlock.emptyFrame();
+            cachedFrameTick = level == null ? Long.MIN_VALUE : level.getGameTime();
+            return cachedFrame;
+        }
         if (level == null) {
             return cachedFrame != null ? cachedFrame : NeonSignBlock.emptyFrame();
         }
@@ -127,9 +149,20 @@ public class NeonSignBlockEntity extends BlockEntity {
 
     /** Pixel occupancy mask for face-culling, cached per game tick. */
     public boolean[] renderOccupancy(byte[] pixelsForRender, NeonSignBlock.FrameLayout frame) {
+        if (frameRemoved) {
+            if (cachedOccupancy == null || level.getGameTime() != cachedOccupancyTick) {
+                cachedOccupancy = new boolean[NeonSignGrid.PIXEL_COUNT];
+                for (int i = 0; i < cachedOccupancy.length; i++) {
+                    cachedOccupancy[i] = (pixelsForRender != null && i < pixelsForRender.length)
+                            && (pixelsForRender[i] & 0xFF) != NeonSignGrid.COLOR_EMPTY;
+                }
+                cachedOccupancyTick = level.getGameTime();
+            }
+            return cachedOccupancy;
+        }
         long tick = level == null ? 0L : level.getGameTime();
         if (cachedOccupancy == null || tick != cachedOccupancyTick) {
-            cachedOccupancy = NeonSignPixelLookup.buildOccupancy(pixelsForRender, frame);
+            cachedOccupancy = NeonSignPixelLookup.buildOccupancy(pixelsForRender, frame, false);
             cachedOccupancyTick = tick;
         }
         return cachedOccupancy;
@@ -284,6 +317,9 @@ public class NeonSignBlockEntity extends BlockEntity {
         if (canvasMember) {
             tag.putBoolean("CanvasMember", true);
         }
+        if (frameRemoved) {
+            tag.putBoolean("FrameRemoved", true);
+        }
         if (pixels != null && hasAnyPixels) {
             tag.putByteArray("Pixels", pixels);
         }
@@ -299,6 +335,7 @@ public class NeonSignBlockEntity extends BlockEntity {
             glyphColor = NeonSignGrid.COLOR_EMPTY;
         }
         canvasMember = tag.getBoolean("CanvasMember");
+        frameRemoved = tag.getBoolean("FrameRemoved");
         if (tag.contains("Pixels")) {
             byte[] loaded = tag.getByteArray("Pixels");
             if (loaded.length == NeonSignGrid.PIXEL_COUNT) {
@@ -335,6 +372,9 @@ public class NeonSignBlockEntity extends BlockEntity {
         }
         if (canvasMember) {
             tag.putBoolean("CanvasMember", true);
+        }
+        if (frameRemoved) {
+            tag.putBoolean("FrameRemoved", true);
         }
         if (pixels != null && hasAnyPixels) {
             tag.putByteArray("Pixels", pixels);

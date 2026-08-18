@@ -39,7 +39,9 @@ public class NeonSignCanvasScreen extends Screen {
     private int lastPaintCol = Integer.MIN_VALUE;
     private int lastPaintRow = Integer.MIN_VALUE;
     private boolean editingName;
+    private boolean frameRemoved;
     private EditBox nameEdit;
+    private Button removeFrameButton;
     private final Deque<byte[]> undoStack = new ArrayDeque<>();
     private final Deque<byte[]> redoStack = new ArrayDeque<>();
 
@@ -55,6 +57,8 @@ public class NeonSignCanvasScreen extends Screen {
             this.canvas = layout.loadCanvasFromWorld(this.minecraft.level);
             this.customName = layout.loadCustomName(this.minecraft.level);
             this.selectedColor = defaultFrameColorIndex();
+            this.frameRemoved = layout.loadFrameRemoved(this.minecraft.level);
+            layout.setFrameRemovedOverride(this.frameRemoved);
         }
         int swatchY = swatchRowY();
         int brushY = brushRowY();
@@ -80,26 +84,38 @@ public class NeonSignCanvasScreen extends Screen {
                 .bounds(swatchX, swatchY, SWATCH_SIZE, SWATCH_SIZE)
                 .build());
         swatchX += SWATCH_SIZE + 6;
+
+        // Left column: Mirror above Eraser (same width, one row up).
+        int eraserX = swatchX;
         addRenderableWidget(Button.builder(Component.translatable("screen.neonlight.neon_canvas.eraser"),
                         btn -> selectedColor = NeonSignGrid.COLOR_EMPTY)
-                .bounds(swatchX, swatchY, 48, SWATCH_SIZE)
+                .bounds(eraserX, swatchY, 48, SWATCH_SIZE)
                 .build());
-        swatchX += 48 + 3;
         addRenderableWidget(Button.builder(Component.translatable("screen.neonlight.neon_canvas.mirror"),
                         btn -> mirrorCanvasHorizontally())
-                .bounds(swatchX, swatchY, 38, SWATCH_SIZE)
-                .build());
-        swatchX += 38 + 3;
-        addRenderableWidget(Button.builder(Component.translatable("screen.neonlight.neon_canvas.undo"),
-                        btn -> undo())
-                .bounds(swatchX, swatchY, 30, SWATCH_SIZE)
-                .build());
-        swatchX += 30 + 2;
-        addRenderableWidget(Button.builder(Component.translatable("screen.neonlight.neon_canvas.redo"),
-                        btn -> redo())
-                .bounds(swatchX, swatchY, 30, SWATCH_SIZE)
+                .bounds(eraserX, brushY, 48, SWATCH_SIZE)
                 .build());
 
+        // Right column: Undo above Redo, next to & in line with the mirror/eraser column.
+        int historyX = eraserX + 48 + 3;
+        addRenderableWidget(Button.builder(Component.translatable("screen.neonlight.neon_canvas.undo"),
+                        btn -> undo())
+                .bounds(historyX, brushY, 30, SWATCH_SIZE)
+                .build());
+        addRenderableWidget(Button.builder(Component.translatable("screen.neonlight.neon_canvas.redo"),
+                        btn -> redo())
+                .bounds(historyX, swatchY, 30, SWATCH_SIZE)
+                .build());
+
+        // Remove Frame sits next to Redo (swatch row), same size.
+        int removeFrameX = historyX + 30 + 3;
+        removeFrameButton = addRenderableWidget(Button.builder(
+                        Component.translatable("screen.neonlight.neon_canvas.remove_frame"),
+                        btn -> toggleRemoveFrame())
+                .bounds(removeFrameX, swatchY, 78, SWATCH_SIZE)
+                .build());
+
+        // Cancel/Done in line with the toolbar (swatch row, right edge).
         int doneX = this.width - BUTTON_WIDTH - 8;
         addRenderableWidget(Button.builder(Component.translatable("gui.done"), btn -> saveAndClose())
                 .bounds(doneX, swatchY, BUTTON_WIDTH, 20)
@@ -200,6 +216,12 @@ public class NeonSignCanvasScreen extends Screen {
         canvas = redoStack.pop();
     }
 
+    private void toggleRemoveFrame() {
+        recordHistory();
+        this.frameRemoved = !this.frameRemoved;
+        layout.setFrameRemovedOverride(this.frameRemoved);
+    }
+
     private void mirrorCanvasHorizontally() {
         recordHistory();
         byte[] mirrored = canvas.clone();
@@ -229,7 +251,8 @@ public class NeonSignCanvasScreen extends Screen {
                 layout.signCols(),
                 layout.signRows(),
                 canvas.clone(),
-                customName));
+                customName,
+                frameRemoved));
         onClose();
     }
 
@@ -307,6 +330,10 @@ public class NeonSignCanvasScreen extends Screen {
         }
         if (selectedColor == NeonSignGrid.COLOR_RAINBOW) {
             graphics.renderOutline(sx, swatchY, SWATCH_SIZE, SWATCH_SIZE, 0xFFFFFFFF);
+        }
+        if (frameRemoved && removeFrameButton != null) {
+            graphics.renderOutline(removeFrameButton.getX(), removeFrameButton.getY(),
+                    removeFrameButton.getWidth(), removeFrameButton.getHeight(), 0xFFFFFFFF);
         }
     }
 

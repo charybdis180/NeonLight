@@ -11,6 +11,7 @@
   "screen.neonlight.neon_canvas.mirror": "Mirror",
   "screen.neonlight.neon_canvas.undo": "Undo",
   "screen.neonlight.neon_canvas.redo": "Redo",
+  "screen.neonlight.neon_canvas.remove_frame": "Toggle Frame",
   "screen.neonlight.neon_canvas.name_hint": "Sign name",
 
   "screen.neonlight.glyph_color": "Select Color",

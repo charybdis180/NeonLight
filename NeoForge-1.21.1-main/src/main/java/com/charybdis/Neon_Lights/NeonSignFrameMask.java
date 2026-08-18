@@ -19,6 +19,11 @@ public final class NeonSignFrameMask {
         return (masks[bit >>> 6] & (1L << (bit & 63))) != 0L;
     }
 
+    /** All cells are considered editable when the sign has no frame (frame removed). */
+    public static boolean isEditableFull(int x, int y) {
+        return x >= 0 && x < NeonSignGrid.PIXELS_W && y >= 0 && y < NeonSignGrid.PIXELS_H;
+    }
+
     private static int layoutKey(FrameLayout layout) {
         int key = 0;
         key |= sideBit(layout.up(), 0);

@@ -152,10 +152,10 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
         BlockPos rightPos = pos.relative(right);
         BlockPos leftPos = pos.relative(left);
 
-        SideConnection connectUp = classify(level.getBlockState(up), state, level, up);
-        SideConnection connectDown = classify(level.getBlockState(down), state, level, down);
-        SideConnection connectRight = classify(level.getBlockState(rightPos), state, level, rightPos);
-        SideConnection connectLeft = classify(level.getBlockState(leftPos), state, level, leftPos);
+        SideConnection connectUp = classify(level.getBlockState(up), state, level, up, pos);
+        SideConnection connectDown = classify(level.getBlockState(down), state, level, down, pos);
+        SideConnection connectRight = classify(level.getBlockState(rightPos), state, level, rightPos, pos);
+        SideConnection connectLeft = classify(level.getBlockState(leftPos), state, level, leftPos, pos);
 
         boolean upJoined = connectUp == SideConnection.SIGN;
         boolean downJoined = connectDown == SideConnection.SIGN;
@@ -167,6 +167,14 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
                 upJoined && rightJoined && !connectsAsSign(state, level.getBlockState(up.relative(right))),
                 downJoined && leftJoined && !connectsAsSign(state, level.getBlockState(down.relative(left))),
                 downJoined && rightJoined && !connectsAsSign(state, level.getBlockState(down.relative(right))));
+    }
+
+    private static boolean isNeighborRemoved(BlockGetter level, BlockPos neighborPos) {
+        return level.getBlockEntity(neighborPos) instanceof NeonSignBlockEntity sign && sign.isFrameRemoved();
+    }
+
+    private static boolean isSelfRemoved(BlockGetter level, BlockPos selfPos) {
+        return level.getBlockEntity(selfPos) instanceof NeonSignBlockEntity sign && sign.isFrameRemoved();
     }
 
     /** Frame/cluster match: same facing, mounting, and compatible color. Customized and plain signs still join frames. */
@@ -192,7 +200,14 @@ public class NeonSignBlock extends HorizontalDirectionalBlock implements EntityB
         return level.getBlockEntity(pos) instanceof NeonSignBlockEntity sign && !sign.getCharacter().isEmpty();
     }
 
-    private static SideConnection classify(BlockState neighbor, BlockState self, BlockGetter level, BlockPos neighborPos) {
+    private static SideConnection classify(BlockState neighbor, BlockState self, BlockGetter level, BlockPos neighborPos, BlockPos selfPos) {
+        // Frame suppression only when this sign shows its frame but the neighbor has removed its frame
+        // (an exterior seam against a frame-less sign or an adjacent custom cluster). When both signs
+        // are frame-removed they share a common interior seam which behaves like a normal sign join.
+        boolean neighborRemoved = isNeighborRemoved(level, neighborPos);
+        if (!isSelfRemoved(level, selfPos) && neighborRemoved) {
+            return SideConnection.NONE;
+        }
         if (connectsAsSign(self, neighbor)) {
             return SideConnection.SIGN;
         }

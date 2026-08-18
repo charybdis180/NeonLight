@@ -18,7 +18,8 @@ public record SetSignCanvasPayload(
         int signCols,
         int signRows,
         byte[] canvasPixels,
-        String customName) implements CustomPacketPayload {
+        String customName,
+        boolean frameRemoved) implements CustomPacketPayload {
 
     public static final Type<SetSignCanvasPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(Neon_Lights.MODID, "set_sign_canvas"));
@@ -40,9 +41,10 @@ public record SetSignCanvasPayload(
             CANVAS_BODY_CODEC, payload -> new CanvasBody(
                     payload.minCol(), payload.minRow(), payload.signCols(), payload.signRows(),
                     payload.canvasPixels(), payload.customName()),
-            (origin, body) -> new SetSignCanvasPayload(
+            ByteBufCodecs.BOOL, SetSignCanvasPayload::frameRemoved,
+            (origin, body, frameRemoved) -> new SetSignCanvasPayload(
                     origin, body.minCol(), body.minRow(), body.signCols(), body.signRows(),
-                    body.canvasPixels(), body.customName()));
+                    body.canvasPixels(), body.customName(), frameRemoved));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
@@ -92,14 +94,14 @@ public record SetSignCanvasPayload(
                     if (color == NeonSignGrid.COLOR_EMPTY) {
                         continue;
                     }
-                    if (!layout.isCanvasPixelEditable(cx, cy) || !NeonSignGrid.isValidColorIndex(color)) {
+                    if (!NeonSignGrid.isValidColorIndex(color)) {
                         return;
                     }
                 }
             }
 
             String name = NeonSignBlockEntity.sanitizeCustomName(payload.customName);
-            layout.applyCanvasToWorld(player.level(), payload.canvasPixels, name);
+            layout.applyCanvasToWorld(player.level(), payload.canvasPixels, name, payload.frameRemoved);
         });
     }
 }
